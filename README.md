@@ -1,75 +1,62 @@
-# React + TypeScript + Vite
+# 🍅 Pomodoro Focus & Task Manager
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A stunning, professional, and fully-featured Pomodoro Timer application built with modern web technologies. Focus on your tasks seamlessly with dynamic background animations, a robust task list, and an automated session queue system.
 
-Currently, two official plugins are available:
+## ✨ Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **🚀 Automated Schedule Generator**: Define your total working hours, focus time, and break limits. The app automatically constructs your entire day's schedule.
+- **🕒 Precision Pomodoro Timer**: Custom-built, highly accurate timer using React hooks (`useTimer.ts`) and `requestAnimationFrame` logic.
+- **📋 Smart Task Queue (Focus Flow)**: See what's next and stay in the zone. Visual timeline highlights your current active session.
+- **✅ Integrated Task List**: Keep track of your micro-tasks within your focus sessions without breaking concentration.
+- **🎨 Stunning Animated UI**: Features dynamic, CSS-driven ambient cosmic backgrounds that pulse alongside your workflow.
+- **🌓 Dark/Light Mode**: Full responsive theme support using Tailwind CSS v4 and OKLCH color spaces for perfect contrast and eye comfort.
+- **🔊 Audio Notifications**: Subtle audio cues alert you when a deep work session ends or a break begins.
 
-## React Compiler
+## 🛠️ Technology Stack
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+- **Framework**: React 18 + TypeScript + Vite
+- **Styling**: Tailwind CSS v4 (with native CSS nesting and theming)
+- **UI Components**: Custom crafted functional components inspired by Aceternity UI and Shadcn (Buttons, Cards, Forms).
+- **Icons & Animation**: Custom CSS Keyframes and Tailwind utilities.
 
-Note: This will impact Vite dev & build performances.
+## 💻 Installation and Setup
 
-## Expanding the ESLint configuration
+To run this project locally, make sure you have [Node.js](https://nodejs.org/) installed on your machine.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/pomodoro-timer.git
+   cd pomodoro-timer
+   ```
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+   *(This project uses modern `@tailwindcss/vite` and other cutting-edge libraries).*
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+3. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+   The application will be available at `http://localhost:5173/`.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+4. **Build for production:**
+   ```bash
+   npm run build
+   ```
+   This will output the optimized static files into the `dist` directory.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🧠 Project Architecture
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+The project is structured following modular and feature-based design patterns:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- `src/App.tsx`: Central hub managing the 3-column layout (Queue, Timer, Task List) and global theme state.
+- `src/components/pomodoro/`: Contains business logic components (`PomodoroTimer.tsx`, `Queue.tsx`, `TaskList.tsx`).
+- `src/components/ui/`: Contains reusable, highly styled generic components (`Card.tsx`, `Button.tsx`).
+- `src/hooks/useTimer.ts`: Robust custom hook managing the exact second intervals, pause, play, and session callbacks.
+- `src/index.css`: Tailwind v4 theme configurations, strict CSS variables, and ambient keyframe animations.
+
+## 📜 License
+
+This project is licensed under the MIT License. Feel free to fork, modify, and build upon it!
