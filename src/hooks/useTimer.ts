@@ -7,20 +7,16 @@ interface UseTimerReturn {
   start: () => void;
   pause: () => void;
   toggle: () => void;
-  reset: (newSeconds: number) => void;
+  reset: (newSeconds?: number) => void;
   setTimeLeft: Dispatch<SetStateAction<number>>;
+  setIsActive: Dispatch<SetStateAction<boolean>>;
 }
 
-
-
-export const useTimer = (initialMinutes: number): UseTimerReturn => {
-  const initialSeconds = initialMinutes * 60;
+export const useTimer = (initialSeconds: number, onFinish?: () => void): UseTimerReturn => {
   const [timeLeft, setTimeLeft] = useState(initialSeconds);
   const [isActive, setIsActive] = useState(false);
 
   const toggle = () => setIsActive(!isActive);
-
-
 
   useEffect(() => {
     let interval: number | undefined;
@@ -29,24 +25,35 @@ export const useTimer = (initialMinutes: number): UseTimerReturn => {
       interval = window.setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
-    } else if (timeLeft === 0 && isActive) {
-      setTimeout(() => {
-        setIsActive(false);
-        window.alert("Süre doldu! Mola vakti.");
-      }, 0);
+    }
+    // Süre tam 0 olduğunda yapılacaklar
+    else if (timeLeft === 0 && isActive) {
+      setIsActive(false);
+      if (onFinish) onFinish();
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, timeLeft]);
+  }, [isActive, timeLeft, onFinish]);
 
   const start = useCallback(() => setIsActive(true), []);
   const pause = useCallback(() => setIsActive(false), []);
+
   const reset = useCallback((newSeconds?: number) => {
     setIsActive(false);
-    setTimeLeft(newSeconds !== undefined ? newSeconds : initialMinutes * 60);
+    // Yeni saniye gelirse onu, gelmezse başlangıçtaki saniyeyi set et
+    setTimeLeft(newSeconds !== undefined ? newSeconds : initialSeconds);
   }, [initialSeconds]);
 
-  return { timeLeft, isActive, start, toggle, pause, reset, setTimeLeft };
+  return {
+    timeLeft,
+    isActive,
+    start,
+    toggle,
+    pause,
+    reset,
+    setTimeLeft,
+    setIsActive
+  };
 };

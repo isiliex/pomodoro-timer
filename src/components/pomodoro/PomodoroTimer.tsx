@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTimer } from "../../hooks/useTimer";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
-
 
 type Mode = 'focus' | 'shortBreak' | 'longBreak';
 const MODE_TIMES = {
@@ -13,11 +12,26 @@ const MODE_TIMES = {
 
 interface PomodoroTimerProps {
   isDark: boolean;
+  initialTime?: number; // Saniye cinsinden
+  onFinish?: () => void;
+  autoStart?: boolean;
 }
 
-export function PomodoroTimer({ isDark }: PomodoroTimerProps) {
+export function PomodoroTimer({ isDark, initialTime, onFinish, autoStart }: PomodoroTimerProps) {
   const [mode, setMode] = useState<Mode>('focus');
-  const { timeLeft, isActive, toggle, reset, setTimeLeft } = useTimer(25);
+
+  // Düzeltme: Sabit 25 yerine dışarıdan gelen initialTime kullanılıyor
+  const { timeLeft, isActive, toggle, reset, setTimeLeft, setIsActive } = useTimer(
+    initialTime || MODE_TIMES.focus,
+    onFinish
+  );
+
+  // Yeni program oluşturulduğunda veya seans değiştiğinde otomatik başlatma
+  useEffect(() => {
+    if (autoStart && initialTime) {
+      setIsActive(true);
+    }
+  }, [initialTime, autoStart, setIsActive]);
 
   const handleModeChange = (newMode: Mode) => {
     setMode(newMode);
@@ -33,7 +47,6 @@ export function PomodoroTimer({ isDark }: PomodoroTimerProps) {
     if (type === 'h') newTotal = val * 3600 + currentM * 60 + currentS;
     else if (type === 'm') newTotal = currentH * 3600 + val * 60 + currentS;
     else if (type === 's') newTotal = currentH * 3600 + currentM * 60 + val;
-
     setTimeLeft(newTotal);
   };
 
@@ -77,13 +90,10 @@ export function PomodoroTimer({ isDark }: PomodoroTimerProps) {
         displayTime={formatDisplay()}
         isActive={isActive}
         onToggle={toggle}
-        onReset={() => reset(MODE_TIMES[mode])}
+        onReset={() => reset(initialTime || MODE_TIMES[mode])}
         onManualChange={handleManual}
         isDark={isDark}
       />
-
-
-
     </div>
   );
 }
