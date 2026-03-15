@@ -26,20 +26,20 @@ const Queue: React.FC<QueueProps> = ({ queue, currentIndex, isDark, onGenerateQu
         setIsLocked(true);
     };
 
-    // Sadece formu açar, mevcut akışı bozmaz
     const handleEdit = () => {
         setIsLocked(false);
     };
 
-    // Her şeyi sıfırlar ve formu açar
     const handleReset = () => {
         setIsLocked(false);
-        onGenerateQueue(0, 0, 0, 0); // App.tsx tarafında sıfırlama tetikler
+        onGenerateQueue(0, 0, 0, 0);
     };
 
     return (
         <div className={`w-80 p-6 rounded-[2.5rem] border transition-all duration-700 h-fit
-      ${isDark ? 'bg-slate-900/40 border-white/10 backdrop-blur-2xl' : 'bg-white/60 border-black/5 backdrop-blur-xl shadow-xl'}`}>
+          ${isDark
+                ? 'bg-slate-900/40 border-white/10 backdrop-blur-2xl shadow-none'
+                : 'bg-white/60 border-black/5 backdrop-blur-xl shadow-sm'}`}>
 
             {/* SETTINGS FORMU */}
             <div className={`mb-8 space-y-4 transition-all duration-500 ${isLocked ? 'opacity-40' : 'opacity-100'}`}>
@@ -92,7 +92,7 @@ const Queue: React.FC<QueueProps> = ({ queue, currentIndex, isDark, onGenerateQu
                 ) : (
                     <button
                         onClick={handleGenerate}
-                        className="w-full py-3.5 rounded-2xl text-[10px] font-black tracking-[0.2em] uppercase bg-blue-600 text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 active:scale-95 transition-all"
+                        className="w-full py-3.5 rounded-2xl text-[10px] font-black tracking-[0.2em] uppercase bg-blue-600 text-white hover:bg-blue-500 active:scale-95 transition-all shadow-md"
                     >
                         Generate Schedule
                     </button>

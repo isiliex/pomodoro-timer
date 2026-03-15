@@ -59,28 +59,43 @@ export function PomodoroTimer({ isDark, initialTime, onFinish, autoStart }: Pomo
 
   return (
     <div className="flex flex-col items-center w-full">
-      <div className="flex gap-2 mb-8 bg-muted/80 p-1.5 rounded-xl z-10 relative shadow-sm">
+      <div className={`flex gap-1 mb-8 p-1.5 rounded-2xl border transition-all duration-500 z-10 relative
+        ${isDark
+          ? 'bg-slate-900/40 border-white/10 backdrop-blur-xl'
+          : 'bg-white/60 border-black/5 shadow-sm backdrop-blur-md'}`}>
+
         <Button
           variant={mode === 'focus' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => handleModeChange('focus')}
-          className="rounded-lg font-semibold"
+          className={`flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all duration-300
+            ${mode === 'focus'
+              ? 'shadow-lg bg-blue-600 hover:bg-blue-500 text-white'
+              : 'hover:bg-slate-500/10'}`}
         >
           Focus
         </Button>
+
         <Button
           variant={mode === 'shortBreak' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => handleModeChange('shortBreak')}
-          className="rounded-lg font-semibold"
+          className={`flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all duration-300
+            ${mode === 'shortBreak'
+              ? 'shadow-lg bg-blue-600 hover:bg-blue-500 text-white'
+              : 'hover:bg-slate-500/10'}`}
         >
           Short Break
         </Button>
+
         <Button
           variant={mode === 'longBreak' ? 'default' : 'ghost'}
           size="sm"
           onClick={() => handleModeChange('longBreak')}
-          className="rounded-lg font-semibold"
+          className={`flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all duration-300
+            ${mode === 'longBreak'
+              ? 'shadow-lg bg-blue-600 hover:bg-blue-500 text-white'
+              : 'hover:bg-slate-500/10'}`}
         >
           Long Break
         </Button>

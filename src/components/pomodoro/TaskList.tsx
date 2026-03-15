@@ -27,7 +27,7 @@ const TaskList: React.FC<{ isDark: boolean }> = ({ isDark }) => {
                 ? 'bg-slate-900/30 border-white/10 backdrop-blur-2xl'
                 : 'bg-white/40 border-black/5 backdrop-blur-xl'}`}>
 
-            <h3 className={`text-xs uppercase tracking-[0.3em] font-black mb-6 opacity-50 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            <h3 className={`text-xs uppercase tracking-[0.3em] font-black mb-6 opacity-100 ${isDark ? 'text-white' : 'text-slate-800'}`}>
                 Focus Tasks
             </h3>
 

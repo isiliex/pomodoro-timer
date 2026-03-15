@@ -118,7 +118,7 @@ function App() {
       </div>
 
       <footer className="fixed bottom-6 text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-black opacity-30">
-        Focus Flow • No Interruptions
+        Pomodoro Focus • No Interruptions
       </footer>
     </main>
   );
