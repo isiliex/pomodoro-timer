@@ -23,12 +23,26 @@ export const useTimer = (initialSeconds: number, onFinish?: () => void): UseTime
 
     if (isActive && timeLeft > 0) {
       interval = window.setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
+        setTimeLeft((prev) => {
+          const newTime = prev - 1;
+
+          // BAŞLIK GÜNCELLEME BURADA (React render'ından bağımsız)
+          if (newTime <= 0) {
+            document.title = "Pomodoro Timer";
+          } else {
+            const m = Math.floor(newTime / 60).toString().padStart(2, '0');
+            const s = (newTime % 60).toString().padStart(2, '0');
+            // Mod bilgisini dışarıdan alamadığımız için genel bir Running yazısı
+            // PomodoroTimer bileşeni bunu saniye içinde üzerine yazacak
+            document.title = `(${m}:${s}) Running...`;
+          }
+
+          return newTime;
+        });
       }, 1000);
-    }
-    // Süre tam 0 olduğunda yapılacaklar
-    else if (timeLeft === 0 && isActive) {
+    } else if (timeLeft === 0 && isActive) {
       setIsActive(false);
+      document.title = "Pomodoro Timer"; // Bittiğinde zorla sabitle
       if (onFinish) onFinish();
     }
 
@@ -42,18 +56,9 @@ export const useTimer = (initialSeconds: number, onFinish?: () => void): UseTime
 
   const reset = useCallback((newSeconds?: number) => {
     setIsActive(false);
-    // Yeni saniye gelirse onu, gelmezse başlangıçtaki saniyeyi set et
+    document.title = "Pomodoro Timer";
     setTimeLeft(newSeconds !== undefined ? newSeconds : initialSeconds);
   }, [initialSeconds]);
 
-  return {
-    timeLeft,
-    isActive,
-    start,
-    toggle,
-    pause,
-    reset,
-    setTimeLeft,
-    setIsActive
-  };
+  return { timeLeft, isActive, start, toggle, pause, reset, setTimeLeft, setIsActive };
 };
