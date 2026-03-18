@@ -103,7 +103,10 @@ function App() {
             <PomodoroTimer
               key={timerKey}
               isDark={isDark}
+
               initialTime={queue[currentIndex]?.duration}
+
+              currentMode={queue[currentIndex]?.mode}
               onFinish={handleNextSession}
               autoStart={queue.length > 0}
             />
