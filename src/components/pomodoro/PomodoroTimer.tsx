@@ -57,6 +57,23 @@ export function PomodoroTimer({ isDark, initialTime, onFinish, autoStart }: Pomo
     return `${hoursStr}${minsStr}:${secsStr}`;
   };
 
+  useEffect(() => {
+    const timeString = formatDisplay();
+
+    if (isActive) {
+      // Örn: "(24:59) Focus"
+      document.title = `(${timeString}) ${mode.charAt(0).toUpperCase() + mode.slice(1)}`;
+    } else {
+      // Sayaç durduğunda sabit başlık
+      document.title = "Pomodoro Focus";
+    }
+
+    // Bileşen kapandığında veya sayfa değiştiğinde başlığı temizle
+    return () => {
+      document.title = "Pomodoro App";
+    };
+  }, [timeLeft, isActive, mode]);
+
   return (
     <div className="flex flex-col items-center w-full">
       <div className={`flex gap-1 mb-8 p-1.5 rounded-2xl border transition-all duration-500 z-10 relative
