@@ -13,65 +13,58 @@ const MODE_TIMES = {
 interface PomodoroTimerProps {
   isDark: boolean;
   initialTime?: number;
-  currentMode?: Mode;
+  currentMode?: Mode; // App.tsx'den gelen gerçek mod
   onFinish?: () => void;
   autoStart?: boolean;
 }
 
-// --- EMOJI FAVICON OLUŞTURUCU ---
-const setEmojiFavicon = (emoji: string) => {
-  const link = (document.querySelector("link[rel*='icon']") as HTMLLinkElement) || document.createElement('link');
-  link.type = 'image/svg+xml';
-  link.rel = 'shortcut icon';
-  // SVG içine emojiyi gömüyoruz, böylece dış dosyaya gerek kalmıyor
-  link.href = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>${emoji}</text></svg>`;
-  if (!document.querySelector("link[rel*='icon']")) {
-    document.getElementsByTagName('head')[0].appendChild(link);
-  }
-};
-
 export function PomodoroTimer({ isDark, initialTime, currentMode, onFinish, autoStart }: PomodoroTimerProps) {
-  const [mode, setMode] = useState<Mode>(currentMode || 'focus');
+  const [mode, setMode] = useState<Mode>('focus');
 
   const { timeLeft, isActive, toggle, reset, setTimeLeft, setIsActive } = useTimer(
     initialTime || MODE_TIMES.focus,
     onFinish
   );
 
+  // --- QUEUE VE MANUEL SENKRONİZASYONU ---
   useEffect(() => {
-    if (currentMode) setMode(currentMode);
-    if (autoStart && initialTime) setIsActive(true);
-  }, [initialTime, currentMode, autoStart, setIsActive]);
-
-  // --- TAB BAŞLIĞI VE FAVICON GÜNCELLEME ---
-  useEffect(() => {
-    // 1. ŞART: Sayaç duruyorsa veya süre bittiyse (0)
-    if (!isActive || timeLeft <= 0) {
-      document.title = "Pomodoro Timer";
-      setEmojiFavicon('⏱️'); // Durunca kronometre emojisi
-      return;
+    if (currentMode) {
+      // Eğer Queue üzerinden bir mod gelmişse (Focus/Break), onu set et
+      setMode(currentMode);
+    } else if (initialTime) {
+      // Eğer Queue yoksa ama süre mola sürelerinden biriyse tahmin et (Yedek mekanizma)
+      if (initialTime === MODE_TIMES.shortBreak) setMode('shortBreak');
+      else if (initialTime === MODE_TIMES.longBreak) setMode('longBreak');
+      else setMode('focus');
     }
 
-    // 2. ŞART: Sadece sayaç aktifken ve saniye akarken
+    if (autoStart && initialTime) {
+      setIsActive(true);
+    }
+  }, [initialTime, currentMode, autoStart, setIsActive]);
+
+  // --- TAB BAŞLIĞI GÜNCELLEME ---
+  useEffect(() => {
     const h = Math.floor(timeLeft / 3600);
     const m = Math.floor((timeLeft % 3600) / 60);
     const s = timeLeft % 60;
     const timeStr = `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
     const label = mode === 'focus' ? 'Focus' : 'Break';
 
-    document.title = `(${timeStr}) ${label}`;
-
-    // MODA GÖRE EMOJI ATAMASI
-    if (mode === 'focus') {
-      setEmojiFavicon('🌪️'); // Odaklanırken Hortum
+    if (timeLeft === 0) {
+      // İstediğin gibi: Süre bittiğinde başlık sabitlenir
+      document.title = "Pomodoro Timer";
     } else {
-      setEmojiFavicon('☕'); // Molada Kahve
+      // (00:02) Focus veya (05:00) Break
+      document.title = `(${timeStr}) ${label}`;
     }
 
-    return () => {
-      document.title = "Pomodoro Timer";
-    };
-  }, [timeLeft, mode, isActive]);
+    const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+    if (link) {
+      link.href = mode === 'focus' ? '/focus-icon.png' : '/break-icon.png';
+    }
+  }, [timeLeft, mode]);
 
   const handleModeChange = (newMode: Mode) => {
     setMode(newMode);
@@ -80,13 +73,13 @@ export function PomodoroTimer({ isDark, initialTime, currentMode, onFinish, auto
 
   const handleManual = (type: 'h' | 'm' | 's', val: number) => {
     let newTotal = 0;
-    const cM = Math.floor((timeLeft % 3600) / 60);
-    const cS = timeLeft % 60;
-    const cH = Math.floor(timeLeft / 3600);
+    const currentM = Math.floor((timeLeft % 3600) / 60);
+    const currentS = timeLeft % 60;
+    const currentH = Math.floor(timeLeft / 3600);
 
-    if (type === 'h') newTotal = val * 3600 + cM * 60 + cS;
-    else if (type === 'm') newTotal = cH * 3600 + val * 60 + cS;
-    else if (type === 's') newTotal = cH * 3600 + cM * 60 + val;
+    if (type === 'h') newTotal = val * 3600 + currentM * 60 + currentS;
+    else if (type === 'm') newTotal = currentH * 3600 + val * 60 + currentS;
+    else if (type === 's') newTotal = currentH * 3600 + currentM * 60 + val;
 
     setTimeLeft(newTotal);
   };

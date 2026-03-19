@@ -15,9 +15,6 @@ function App() {
    * Alert (bildirim kutusu) kaldırıldı.
    */
   const handleNextSession = useCallback(() => {
-    // SEANS BİTTİĞİ AN BAŞLIĞI MANUEL SABİTLE (React'ten önce davranıyoruz)
-    document.title = "Pomodoro Timer";
-
     const playNotificationSound = () => {
       const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
       audio.volume = 0.5;
@@ -29,6 +26,7 @@ function App() {
       setCurrentIndex((prev) => prev + 1);
       setTimerKey((prev) => prev + 1);
     } else {
+      // Program tamamen bittiğinde de sadece ses çal ve listeyi temizle
       playNotificationSound();
       setQueue([]);
       setCurrentIndex(0);
