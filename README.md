@@ -57,6 +57,4 @@ The project is structured following modular and feature-based design patterns:
 - `src/hooks/useTimer.ts`: Robust custom hook managing the exact second intervals, pause, play, and session callbacks.
 - `src/index.css`: Tailwind v4 theme configurations, strict CSS variables, and ambient keyframe animations.
 
-## 📜 License
 
-This project is licensed under the MIT License. Feel free to fork, modify, and build upon it!
