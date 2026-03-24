@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 
 interface UseTimerReturn {
@@ -15,34 +15,75 @@ interface UseTimerReturn {
 export const useTimer = (initialSeconds: number, onFinish?: () => void): UseTimerReturn => {
   const [timeLeft, setTimeLeft] = useState(initialSeconds);
   const [isActive, setIsActive] = useState(false);
+  const workerRef = useRef<Worker | null>(null);
+  const onFinishRef = useRef(onFinish);
 
-  const toggle = () => setIsActive(!isActive);
-
+  // Sync onFinish ref with the latest callback
   useEffect(() => {
-    let interval: number | undefined;
+    onFinishRef.current = onFinish;
+  }, [onFinish]);
 
-    if (isActive && timeLeft > 0) {
-      interval = window.setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    }
-    // Süre tam 0 olduğunda yapılacaklar
-    else if (timeLeft === 0 && isActive) {
-      setIsActive(false);
-      if (onFinish) onFinish();
-    }
+  // Web Worker Setup (Inline Blob-based)
+  useEffect(() => {
+    const workerCode = `
+      let timer = null;
+      self.onmessage = (e) => {
+        if (e.data === 'START') {
+          if (timer) return;
+          timer = setInterval(() => {
+            self.postMessage('TICK');
+          }, 1000);
+        } else if (e.data === 'STOP') {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+        }
+      };
+    `;
+
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    const worker = new Worker(url);
+    workerRef.current = worker;
+
+    worker.onmessage = (e: MessageEvent<string>) => {
+      if (e.data === 'TICK') {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            worker.postMessage('STOP');
+            setIsActive(false);
+            onFinishRef.current?.();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }
+    };
 
     return () => {
-      if (interval) clearInterval(interval);
+      worker.terminate();
+      URL.revokeObjectURL(url);
+      workerRef.current = null;
     };
-  }, [isActive, timeLeft, onFinish]);
+  }, []); // Only initialize once
 
+  // Send START/STOP commands based on isActive state
+  useEffect(() => {
+    if (isActive && timeLeft > 0) {
+      workerRef.current?.postMessage('START');
+    } else {
+      workerRef.current?.postMessage('STOP');
+    }
+  }, [isActive, timeLeft]);
+
+  const toggle = useCallback(() => setIsActive((prev) => !prev), []);
   const start = useCallback(() => setIsActive(true), []);
   const pause = useCallback(() => setIsActive(false), []);
 
   const reset = useCallback((newSeconds?: number) => {
     setIsActive(false);
-    // Yeni saniye gelirse onu, gelmezse başlangıçtaki saniyeyi set et
+    workerRef.current?.postMessage('STOP');
     setTimeLeft(newSeconds !== undefined ? newSeconds : initialSeconds);
   }, [initialSeconds]);
 
@@ -56,4 +97,4 @@ export const useTimer = (initialSeconds: number, onFinish?: () => void): UseTime
     setTimeLeft,
     setIsActive
   };
-};
+};
