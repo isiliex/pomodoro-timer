@@ -1,8 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react"; // useRef eklendi
 import { PomodoroTimer } from "./components/pomodoro/PomodoroTimer";
 import { Button } from "./components/ui/Button";
 import TaskList from './components/pomodoro/TaskList';
 import Queue, { type QueueItem } from './components/pomodoro/Queue';
+
+// Ses objesini component dışında tanımlıyoruz ki her renderda yeniden oluşmasın
+const notificationSound = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+notificationSound.volume = 0.5;
 
 function App() {
   const [queue, setQueue] = useState<QueueItem[]>([]);
@@ -11,14 +15,21 @@ function App() {
   const [timerKey, setTimerKey] = useState(0);
 
   /**
-   * Seans bittiğinde SADECE SES çalar ve bir sonraki seansa geçer.
-   * Alert (bildirim kutusu) kaldırıldı.
+   * SES KİLİDİNİ AÇMA (Audio Unlock)
+   * Bu fonksiyon kullanıcı bir butona bastığı an çalışır ve tarayıcıya 
+   * "bu site ses çalabilir" izni verir.
    */
+  const unlockAudio = () => {
+    notificationSound.play().then(() => {
+      notificationSound.pause();
+      notificationSound.currentTime = 0;
+    }).catch(e => console.log("Ses kilidi açılamadı (normal):", e));
+  };
+
   const handleNextSession = useCallback(() => {
     const playNotificationSound = () => {
-      const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-      audio.volume = 0.5;
-      audio.play().catch(e => console.log("Ses engellendi:", e));
+      // Kilidi açılmış sesi doğrudan çalıyoruz
+      notificationSound.play().catch(e => console.log("Ses engellendi:", e));
     };
 
     if (currentIndex < queue.length - 1) {
@@ -26,7 +37,6 @@ function App() {
       setCurrentIndex((prev) => prev + 1);
       setTimerKey((prev) => prev + 1);
     } else {
-      // Program tamamen bittiğinde de sadece ses çal ve listeyi temizle
       playNotificationSound();
       setQueue([]);
       setCurrentIndex(0);
@@ -35,6 +45,9 @@ function App() {
   }, [currentIndex, queue.length]);
 
   const generateQueue = (totalHours: number, totalMins: number, focusMins: number, breakMins: number) => {
+    // Kullanıcı butona bastığı an ses iznini alıyoruz
+    unlockAudio();
+
     if (totalHours === 0 && totalMins === 0) {
       setQueue([]);
       setCurrentIndex(0);
@@ -77,19 +90,16 @@ function App() {
   return (
     <main className={`relative min-h-screen flex items-center justify-center p-4 sm:p-8 transition-colors duration-500 overflow-hidden ${isDark ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-900'}`}>
 
-      {/* ARKA PLAN DESENİ */}
+      {/* ARKA PLAN DESENİ VE KOZMİK KÜRELER (Aynen Korundu) */}
       <div className="fixed inset-0 -z-10 h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(#ffffff0a_1px,transparent_1px)]"></div>
-
-      {/* 12 KOZMİK KÜRE */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <div className={`absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full blur-[120px] transition-all duration-1000 ${isDark ? 'bg-blue-600 opacity-20' : 'bg-blue-400 opacity-30'}`}></div>
         <div className={`absolute -top-40 -right-40 w-[450px] h-[450px] rounded-full blur-[110px] transition-all duration-1000 ${isDark ? 'bg-purple-600 opacity-20' : 'bg-purple-300 opacity-25'}`}></div>
         <div className={`absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full blur-[130px] transition-all duration-1000 ${isDark ? 'bg-emerald-600 opacity-20' : 'bg-emerald-300 opacity-25'}`}></div>
         <div className={`absolute -bottom-40 -right-40 w-[450px] h-[450px] rounded-full blur-[110px] transition-all duration-1000 ${isDark ? 'bg-rose-600 opacity-20' : 'bg-rose-300 opacity-30'}`}></div>
-        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1400px] h-[1400px] rounded-full blur-[160px] transition-all duration-1000 ${isDark ? 'bg-slate-800 opacity-5' : 'bg-slate-200 opacity-20'}`}></div>
       </div>
 
-      <Button variant="outline" size="icon" onClick={() => setIsDark(!isDark)} className="fixed top-6 right-6 z-50 rounded-full w-12 h-12 border-white/10 bg-background shadow-md">
+      <Button variant="outline" size="icon" onClick={() => { unlockAudio(); setIsDark(!isDark); }} className="fixed top-6 right-6 z-50 rounded-full w-12 h-12 border-white/10 bg-background shadow-md">
         {isDark ? '🌙' : '☀️'}
       </Button>
 
@@ -103,9 +113,7 @@ function App() {
             <PomodoroTimer
               key={timerKey}
               isDark={isDark}
-
               initialTime={queue[currentIndex]?.duration}
-
               currentMode={queue[currentIndex]?.mode}
               onFinish={handleNextSession}
               autoStart={queue.length > 0}

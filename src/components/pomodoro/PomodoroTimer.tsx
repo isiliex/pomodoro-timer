@@ -13,7 +13,7 @@ const MODE_TIMES = {
 interface PomodoroTimerProps {
   isDark: boolean;
   initialTime?: number;
-  currentMode?: Mode; // App.tsx'den gelen gerçek mod
+  currentMode?: Mode;
   onFinish?: () => void;
   autoStart?: boolean;
 }
@@ -23,16 +23,15 @@ export function PomodoroTimer({ isDark, initialTime, currentMode, onFinish, auto
 
   const { timeLeft, isActive, toggle, reset, setTimeLeft, setIsActive } = useTimer(
     initialTime || MODE_TIMES.focus,
-    onFinish
+    onFinish // NOT: useTimer içinde onFinish useEffect ile çağrılmalı
   );
 
-  // --- QUEUE VE MANUEL SENKRONİZASYONU ---
+  // --- QUEUE VE MOD SENKRONİZASYONU ---
   useEffect(() => {
+    // State güncellemelerini tek bir effect içinde topluyoruz
     if (currentMode) {
-      // Eğer Queue üzerinden bir mod gelmişse (Focus/Break), onu set et
       setMode(currentMode);
     } else if (initialTime) {
-      // Eğer Queue yoksa ama süre mola sürelerinden biriyse tahmin et (Yedek mekanizma)
       if (initialTime === MODE_TIMES.shortBreak) setMode('shortBreak');
       else if (initialTime === MODE_TIMES.longBreak) setMode('longBreak');
       else setMode('focus');
@@ -43,26 +42,26 @@ export function PomodoroTimer({ isDark, initialTime, currentMode, onFinish, auto
     }
   }, [initialTime, currentMode, autoStart, setIsActive]);
 
-  // --- TAB BAŞLIĞI GÜNCELLEME ---
+  // --- TAB BAŞLIĞI VE İKON GÜNCELLEME ---
   useEffect(() => {
-    const h = Math.floor(timeLeft / 3600);
-    const m = Math.floor((timeLeft % 3600) / 60);
+    const m = Math.floor(timeLeft / 60);
     const s = timeLeft % 60;
-    const timeStr = `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-
+    const timeStr = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     const label = mode === 'focus' ? 'Focus' : 'Break';
 
     if (timeLeft === 0) {
-      // İstediğin gibi: Süre bittiğinde başlık sabitlenir
       document.title = "Pomodoro Timer";
     } else {
-      // (00:02) Focus veya (05:00) Break
       document.title = `(${timeStr}) ${label}`;
     }
 
+    // İkon güncelleme - her renderda querySelector yapmamak için kontrol
     const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
     if (link) {
-      link.href = mode === 'focus' ? '/focus-icon.png' : '/break-icon.png';
+      const newIcon = mode === 'focus' ? '/focus-icon.png' : '/break-icon.png';
+      if (link.getAttribute('href') !== newIcon) {
+        link.href = newIcon;
+      }
     }
   }, [timeLeft, mode]);
 
@@ -89,35 +88,18 @@ export function PomodoroTimer({ isDark, initialTime, currentMode, onFinish, auto
       <div className={`flex gap-1 mb-8 p-1.5 rounded-2xl border transition-all duration-500 z-10 relative
         ${isDark ? 'bg-slate-900/40 border-white/10 backdrop-blur-xl' : 'bg-white/60 border-black/5 shadow-sm backdrop-blur-md'}`}>
 
-        <Button
-          variant={mode === 'focus' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => handleModeChange('focus')}
-          className={`flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all duration-300
-            ${mode === 'focus' ? 'shadow-lg bg-blue-600 text-white' : 'hover:bg-slate-500/10'}`}
-        >
-          Focus
-        </Button>
-
-        <Button
-          variant={mode === 'shortBreak' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => handleModeChange('shortBreak')}
-          className={`flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all duration-300
-            ${mode === 'shortBreak' ? 'shadow-lg bg-blue-600 text-white' : 'hover:bg-slate-500/10'}`}
-        >
-          Short Break
-        </Button>
-
-        <Button
-          variant={mode === 'longBreak' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => handleModeChange('longBreak')}
-          className={`flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all duration-300
-            ${mode === 'longBreak' ? 'shadow-lg bg-blue-600 text-white' : 'hover:bg-slate-500/10'}`}
-        >
-          Long Break
-        </Button>
+        {(['focus', 'shortBreak', 'longBreak'] as const).map((m) => (
+          <Button
+            key={m}
+            variant={mode === m ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => handleModeChange(m)}
+            className={`flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider transition-all duration-300
+              ${mode === m ? 'shadow-lg bg-blue-600 text-white' : 'hover:bg-slate-500/10'}`}
+          >
+            {m === 'shortBreak' ? 'Short Break' : m === 'longBreak' ? 'Long Break' : 'Focus'}
+          </Button>
+        ))}
       </div>
 
       <Card
